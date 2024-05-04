@@ -1,0 +1,12 @@
+version: "3"
+
+tasks:
+  conda_lock:
+    cmds:
+    - conda-lock -k explicit -f environment.yml
+  create_env_linux:
+    cmds:
+    - mamba create -n proteinbert_gen --file conda-linux-64.lock
+  create_env_macos:
+    cmds:
+    - mamba create -n proteinbert_gen --file conda-osx-64.lock
