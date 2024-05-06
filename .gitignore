@@ -1,3 +1,8 @@
+# project specific (big files)
+weights/
+
+
+# default .gitignore files
 *~
 
 # temporary files which can be created if a process still has a handle open of a deleted file
@@ -118,6 +123,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
+.jupyter_ystore.db
 .ipynb_checkpoints
 
 # IPython
