@@ -71,7 +71,7 @@ class GlobalAttention(nn.Module):
         if attention_mask is not None:
             att_mask = (1.0 - attention_mask) * -10000
             att_mask = att_mask.unsqueeze(1)
-            print(att.shape, att_mask.shape)
+            # print("attention and attention mask", att.shape, att_mask.shape)
             att += att_mask
 
         att = att.softmax(dim=-1)
