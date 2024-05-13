@@ -1,5 +1,3 @@
-import torch
-
 class ProteinTokenizer():
     ALL_AMINO_ACIDS = "ACDEFGHIKLMNPQRSTUVWXY"
     ADDITIONAL_TOKENS = ("&", "^", "$", "_")
@@ -15,12 +13,7 @@ class ProteinTokenizer():
 
     @classmethod
     def tokenize(cls, seq: str):
-        ret = []
-
-        for c in seq:
-            ret.append(cls.token_to_id[c])
-
-        return torch.tensor(ret, dtype=torch.long)
+        return [cls.token_to_id[c] for c in seq]
 
     @classmethod
     def untokenize(cls, seq: list):
