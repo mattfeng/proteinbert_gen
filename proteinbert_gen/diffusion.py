@@ -569,16 +569,17 @@ class MaskDiffusion(DiscreteDiffusionMatrixBase):
 
 
 def create_discrete_diffusion_schedule(
-        kind="linear",
-        beta_min=1e-3,
-        beta_max=1e-1,
-        num_steps=100,
-        scale=1.0,
-        s=0.008
+    beta_min=1e-3,
+    beta_max=1e-1,
+    num_steps=100,
+    scale=1.0,
+    s=0.008
 ):
     """Creates a callable schedule object to use for diffusion rates.
+
+    Schedule object is of "mutual" type.
+
     Args:
-    kind: str, one of 'standard', 'linear', 'cosine', 'mutual_information'. If
       standard, performs standard binomial diffusion taken from Sohl-Dicksteein
       et al, ignoring betas. Otherwise, linear schedule between beta_min and
       beta_max.
@@ -695,7 +696,7 @@ def compute_prior_kl(x_start, diffusion, target_mask=None, word_freq_logits=None
     q_probs = diffusion.get_qt_given_q0(q0=x_start, t=num_steps, return_logits=False, make_one_hot=True, word_freq_logits=word_freq_logits)  # get end step
     p_probs = diffusion.stationary_probs(q_probs.shape[:-1])
 
-    loss = losses.kl_divergence_with_probs(q_probs, p_probs)
+    loss = kl_divergence_with_probs(q_probs, p_probs)
 
     if target_mask is not None:
         loss = (loss * target_mask).sum()
@@ -773,20 +774,20 @@ def compute_kl_reverse_process(x_start,
     if predict_x0 and hybrid_lambda > 0.0:
         p_t, p_0 = p_t
         if log_space:
-            cross_entropy = losses.cross_entropy_with_logits(logits=p_0, targets=x_start)
+            cross_entropy = cross_entropy_with_logits(logits=p_0, targets=x_start)
         else:
-            cross_entropy = losses.cross_entropy_with_probs(probs=p_0, targets=x_start)
+            cross_entropy = cross_entropy_with_probs(probs=p_0, targets=x_start)
 
         hybrid_loss = hybrid_lambda * cross_entropy
     else:
         hybrid_loss = torch.tensor([0.], device=device)
 
     if log_space:
-        kl = losses.kl_divergence_with_logits(q_t, p_t)
-        cross_entropy = losses.cross_entropy_with_logits(logits=p_t, targets=x_start)
+        kl = kl_divergence_with_logits(q_t, p_t)
+        cross_entropy = cross_entropy_with_logits(logits=p_t, targets=x_start)
     else:
-        kl = losses.kl_divergence_with_probs(q_t, p_t)
-        cross_entropy = losses.cross_entropy_with_probs(probs=p_t, targets=x_start)
+        kl = kl_divergence_with_probs(q_t, p_t)
+        cross_entropy = cross_entropy_with_probs(probs=p_t, targets=x_start)
 
     if target_mask is not None:
         kl = (kl * target_mask).sum()
