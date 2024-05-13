@@ -1,6 +1,7 @@
 # project specific (big files)
 weights/
 data/
+wandb/
 
 
 # default .gitignore files
@@ -125,6 +126,7 @@ target/
 
 # Jupyter Notebook
 .jupyter_ystore.db
+.jupyter_ystore.db-journal
 .ipynb_checkpoints
 
 # IPython

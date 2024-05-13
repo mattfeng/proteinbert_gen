@@ -8,6 +8,8 @@ from torch import einsum
 from einops import rearrange
 from einops.layers.torch import Rearrange
 
+from .debugging import print2
+
 class Residual(nn.Module):
     def __init__(self, fn):
         super().__init__()
@@ -109,12 +111,18 @@ class TransformerLikeBlock(nn.Module):
         x_local = self.local_ln1(
             x_local + self.wide_and_narrow_conv1d(x_local) + self.dense_and_broadcast(x_global)
         )
+        print2("local_ln1", x_local.shape, x_local, tags=["in block"])
+
         x_local = self.local_dense(x_local)
+        print2("local_dense", x_local.shape, x_local, tags=["in block"])
 
         x_global = self.global_ln1(
             x_global + self.global_dense1(x_global) + self.global_attention(x_local, x_global, attention_mask=attention_mask)
         )
+        print2("global_ln1", x_local.shape, x_local, tags=["in block"])
+
         x_global = self.global_dense2(x_global)
+        print2("global_dense2", x_local.shape, x_local, tags=["in block"])
 
         return x_local, x_global
 
@@ -147,8 +155,13 @@ class ProteinBERT(nn.Module):
             x_global = torch.zeros((x_local.size(0), self.ann_size))
         x_global = self.embed_global(x_global)
 
-        for block in self.blocks:
+        print2("embed_local", x_local.shape, x_local, tags=["inputs"])
+        print2("embed_global", x_global.shape, x_global, tags=["inputs"])
+
+        for i, block in enumerate(self.blocks):
+            print2(f"=== block {i} ===", tags=["in block"])
             x_local, x_global = block(x_local, x_global, attention_mask=attention_mask)
+            print2(f"x_local_{i}", x_local.shape, x_local)
 
         return self.local_head(x_local)
 
@@ -218,3 +231,18 @@ def load_pretrained_weights(model, pretrained_model_weights):
     state["global_head.0.bias"] = pretrained_model_weights[144]
 
     model.load_state_dict(state)
+
+    unfrozen_params = []
+
+    for name, module in model.named_modules():
+        print(name, end="")
+        # if str(type(module)).find("LayerNorm") != -1:
+        #     print(f" ...freezing", end="")
+        #     continue
+
+        for param in module.parameters():
+            unfrozen_params.append(param)
+
+        print()
+
+    return unfrozen_params

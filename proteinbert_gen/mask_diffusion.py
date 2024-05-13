@@ -1,8 +1,11 @@
 import torch
+import torch.nn.functional as F
 import abc
 import numpy as np
 from typing import Any
 from dataclasses import dataclass
+
+from .debugging import print2
 
 
 def kl_divergence_with_probs(p=None, q=None, epsilon=1e-20):
@@ -329,6 +332,7 @@ class DiscreteDiffusionMatrixBase(DiscreteDiffusionBase):
             x_0 = torch.nn.functional.one_hot(x_0, dim).reshape(x_0.shape + (dim,))
 
         prob_at_time_t = self.get_qt_given_q0(q0=x_0, t=t, word_freq_logits=word_freq_logits)
+        print2("prob_at_time_t", prob_at_time_t.shape, prob_at_time_t)
 
         if self.supports_efficient_get():
             if step_size > 1:
@@ -649,8 +653,14 @@ def p_forward(
     """
     assert not (step_size > 1 and not predict_x0)
 
+    print2("x_t targets", x_t.shape, x_t)
+
     logits = denoise_fn(targets=x_t, timestep=t, attention_mask=target_mask)
+    print2("logits", logits.shape, logits)
+
     probs = torch.nn.Softmax(dim=-1)(logits)
+    print2("probs", probs.shape, probs)
+
 
     if not predict_x0:
         retval = logits if return_logits else probs
@@ -664,6 +674,7 @@ def p_forward(
 
     # we use this to compute p(x_{t-1} | x_t) = sum_x0 q(x_{t-1} | x_t, x_0)
     # p(x_0 | x_t).
+
     qt_probs, _ = diffusion.sample_and_compute_posterior_q(
         x_0=probs,
         t=t - step_size,
@@ -779,7 +790,7 @@ def compute_kl_reverse_process(x_start,
 
     if predict_x0 and hybrid_lambda > 0.0:
         p_t, p_0 = p_t
-        # print("p_0", p_0.shape, p_0)
+        print2("p_0", p_0.shape, p_0)
 
         if log_space:
             cross_entropy = cross_entropy_with_logits(logits=p_0, targets=x_start)
@@ -790,7 +801,7 @@ def compute_kl_reverse_process(x_start,
     else:
         hybrid_loss = torch.tensor([0.], device=device)
 
-    # print("p_t", p_t.shape, p_t)
+    print2("p_t", p_t.shape, p_t)
 
     if log_space:
         kl = kl_divergence_with_logits(q_t, p_t)
