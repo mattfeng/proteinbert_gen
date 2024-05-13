@@ -1,5 +1,6 @@
 # project specific (big files)
 weights/
+data/
 
 
 # default .gitignore files
