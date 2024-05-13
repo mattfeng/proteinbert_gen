@@ -152,7 +152,7 @@ class ProteinBERT(nn.Module):
         x_local = self.embed_local(x_local)
 
         if x_global is None:
-            x_global = torch.zeros((x_local.size(0), self.ann_size))
+            x_global = torch.zeros((x_local.size(0), self.ann_size)).to(x_local.device)
         x_global = self.embed_global(x_global)
 
         print2("embed_local", x_local.shape, x_local, tags=["inputs"])

@@ -20,7 +20,7 @@ class ProteinTokenizer():
 
     @classmethod
     def untokenize(cls, seq: list):
-        return "".join(map(lambda i: cls.token_to_id[i], seq))
+        return "".join(map(lambda i: cls.id_to_token[i], seq))
 
     @classmethod
     def is_valid_seq(cls, seq):
