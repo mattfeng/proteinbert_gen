@@ -392,6 +392,9 @@ class DiscreteDiffusionMatrixBase(DiscreteDiffusionBase):
 
             posterior = transition_probs * prob_at_time_t
             denominator = posterior.sum(dim=-1, keepdims=True)
+
+            # print("denominator", denominator.shape, denominator)
+
             posterior = posterior / denominator
             if return_transition_probs:
                 return posterior, samples, transition_probs
@@ -754,6 +757,9 @@ def compute_kl_reverse_process(x_start,
         step_size=step_size,
         word_freq_logits=word_freq_logits,
     )
+    # print("q_t", q_t.shape, q_t)
+    # print("x_t+1", x_t_plus_1.shape, x_t_plus_1)
+    # print("transition_probs", transition_probs.shape, transition_probs)
 
     transition_probs = transition_probs if use_cached_transition else None
 
@@ -773,6 +779,8 @@ def compute_kl_reverse_process(x_start,
 
     if predict_x0 and hybrid_lambda > 0.0:
         p_t, p_0 = p_t
+        # print("p_0", p_0.shape, p_0)
+
         if log_space:
             cross_entropy = cross_entropy_with_logits(logits=p_0, targets=x_start)
         else:
@@ -781,6 +789,8 @@ def compute_kl_reverse_process(x_start,
         hybrid_loss = hybrid_lambda * cross_entropy
     else:
         hybrid_loss = torch.tensor([0.], device=device)
+
+    # print("p_t", p_t.shape, p_t)
 
     if log_space:
         kl = kl_divergence_with_logits(q_t, p_t)
