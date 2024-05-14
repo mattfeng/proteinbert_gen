@@ -820,7 +820,8 @@ def compute_kl_reverse_process(x_start,
         hybrid_loss = hybrid_loss.sum()
 
     mask = (t == 0).long()
-    base_loss = mask * cross_entropy + (1 - mask) * kl
+    # base_loss = mask * cross_entropy + (1 - mask) * kl
+    base_loss = cross_entropy + kl
     loss = base_loss + hybrid_loss
     denominator = 1
     metrics_dict = {
