@@ -808,7 +808,7 @@ def compute_kl_reverse_process(x_start,
         cross_entropy = cross_entropy_with_logits(logits=p_t, targets=x_start)
     else:
         kl = kl_divergence_with_probs(q_t, p_t)
-        cross_entropy = cross_entropy_with_probs(probs=p_t, targets=x_start)
+        # cross_entropy = cross_entropy_with_probs(probs=p_t, targets=x_start)
 
     if target_mask is not None:
         kl = (kl * target_mask).sum()
@@ -822,7 +822,7 @@ def compute_kl_reverse_process(x_start,
     mask = (t == 0).long()
     # base_loss = mask * cross_entropy + (1 - mask) * kl
     base_loss = cross_entropy + kl
-    loss = base_loss + hybrid_loss
+    loss = base_loss # + hybrid_loss
     denominator = 1
     metrics_dict = {
         "loss": loss,
