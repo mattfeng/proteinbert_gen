@@ -948,8 +948,6 @@ def discrete_diffusion_predict_fn(
     topk=0,
     topp=-1.0,
     context_fn=None,
-    sample_cls=None,
-    show_process=False,
     temperature=1.0
 ):
     """Predict an image or text from a diffusion model.
@@ -981,8 +979,6 @@ def discrete_diffusion_predict_fn(
     a dictionary containing metrics and information about the prediction
       process.
   """
-    if show_process:
-        tk = AutoTokenizer.from_pretrained('bert-base-uncased')
     num_steps = diffusion.num_steps
     assert num_steps % step_size == 0
     assert step_size < num_steps
@@ -1026,8 +1022,8 @@ def discrete_diffusion_predict_fn(
         logits = top_k_top_p_filtering(logits, top_k=topk, top_p=topp)
 
         sample = torch.distributions.categorical.Categorical(logits=logits).sample()
-        if show_process:
-            print(tk.batch_decode(x0, clean_up_tokenization_spaces=False))
+
+        # print(sample)
 
         return SamplingState(x=sample, x0=x0, t=t - step_size)
 
@@ -1036,9 +1032,9 @@ def discrete_diffusion_predict_fn(
         x = context_fn(x)
 
     if predict_x0:
-        init_state = SamplingState(x, x, torch.tensor([num_steps], device=self.device))
+        init_state = SamplingState(x, x, torch.tensor([num_steps], device=diffusion.device))
     else:
-        init_state = SamplingState(x, None, torch.tensor([num_steps], device=self.device))
+        init_state = SamplingState(x, None, torch.tensor([num_steps], device=diffusion.device))
 
     total_steps = num_steps // step_size
 

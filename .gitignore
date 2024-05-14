@@ -3,6 +3,7 @@ weights/
 data/
 wandb/
 uniprot_sprot.dat
+checkpoints/
 
 
 # default .gitignore files
