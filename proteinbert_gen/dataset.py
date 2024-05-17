@@ -2,8 +2,8 @@ import torch
 import csv
 
 class SwissProtDataset(torch.utils.data.Dataset):
-    def __init__(self):
-        self.csvfile = "../data/uniprot_sprot_1m.csv"
+    def __init__(self, csvfile):
+        self.csvfile = csvfile
         self.data = self._read_data()
 
     def _read_data(self):
@@ -37,11 +37,3 @@ def calculate_splits(train_pct, val_pct, test_pct, total):
     test = int(test_pct * total)
     train = total - val - test
     return train, val, test
-
-
-sprot_all = SwissProtDataset()
-sprot_train, sprot_val, sprot_test = torch.utils.data.random_split(
-        sprot_all,
-        calculate_splits(0.7, 0.2, 0.1, len(sprot_all)),
-        generator=torch.Generator().manual_seed(42)
-        )

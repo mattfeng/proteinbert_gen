@@ -134,6 +134,7 @@ class ProteinBERT(nn.Module):
             ann_size,
             d_local=128,
             d_global=512,
+            num_blocks=6
         ):
         super().__init__()
 
@@ -143,7 +144,7 @@ class ProteinBERT(nn.Module):
         self.embed_local = nn.Embedding(vocab_size, d_local)
         self.embed_global = nn.Sequential(nn.Linear(ann_size, d_global), nn.GELU())
 
-        self.blocks = nn.ModuleList([TransformerLikeBlock(d_local, d_global) for _ in range(6)])
+        self.blocks = nn.ModuleList([TransformerLikeBlock(d_local, d_global) for _ in range(num_blocks)])
 
         self.local_head = nn.Sequential(nn.Linear(d_local, vocab_size))  # NOTE: logits are returned
         self.global_head = nn.Sequential(nn.Linear(d_global, ann_size), nn.Sigmoid())
