@@ -4,6 +4,7 @@ import pickle
 import math
 
 import wandb
+from wandb_osh.hooks import TriggerWandbSyncHook
 
 import torch
 
@@ -72,8 +73,10 @@ args = Hyperparameters(
 run = wandb.init(
     project="proteinbert_gen",
     config={k:str(v) for k, v in args._asdict().items()},
-    # mode="disabled"
+    mode="offline"
 )
+print(f"wandb run name: {run.name}")
+trigger_sync = TriggerWandbSyncHook()
 
 sprot_all = SwissProtDataset(args.data_csvfile)
 sprot_train, sprot_val, sprot_test = torch.utils.data.random_split(
@@ -164,10 +167,6 @@ def denoise(targets, timestep, attention_mask, *, model):
     # print("denoise output:", ret.shape)
     return ret
 
-
-with open("../weights/epoch_92400_sample_23500000.pkl", "rb") as f:
-    _, pretrained_model_weights, _ = pickle.load(f)
-
 model = ProteinBERT(
     tokenizer.vocab_size,
     consts.GO_ANN_SIZE,
@@ -177,6 +176,8 @@ model = ProteinBERT(
 )
 print(model)
 
+# with open("../weights/epoch_92400_sample_23500000.pkl", "rb") as f:
+#    _, pretrained_model_weights, _ = pickle.load(f)
 # trainable_params = load_pretrained_weights(model, pretrained_model_weights)
 trainable_params = list(model.parameters())
 model = model.to(args.device)
@@ -267,6 +268,7 @@ for epoch in range(args.epochs):
             if args.warmup_scheduler:
                 run.log({"last_lr": warmup_scheduler.get_last_lr()[0]}, commit=False)
             run.log({"nan_count": nan_count, "nan -> zero": has_nan_log})
+            trigger_sync()
             has_nan_log = 0
 
     # generate some proteins
@@ -283,6 +285,7 @@ for epoch in range(args.epochs):
         generated_table.add_data(j, genprot)
         print(genprot)
     run.log({"generated_proteins": generated_table})
+    trigger_sync()
 
     torch.save(model.state_dict(), f"../checkpoints/{run.name}-postepoch-{epoch}.pt")
     torch.save(optimizer.state_dict(), f"../checkpoints/{run.name}-postepoch-{epoch}-optimizer.pt")
